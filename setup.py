@@ -38,15 +38,15 @@ except ImportError:
             Command.set_undefined_options(self, opt, val)
 
 def get_version():
-    with open('VERSION', 'r') as f:
+    with open('VERSION', 'rb') as f:
         version = f.read().strip()
 
     # Append the Git commit id if this is a development version.
-    if version.endswith('+'):
+    if version.endswith(b'+'):
         import re
         import subprocess
         version = version[:-1]
-        tag = 'v' + version
+        tag = b'v' + version
         desc = subprocess.check_output([
             'git', 'describe', '--dirty', '--long', '--match', tag,
         ])
