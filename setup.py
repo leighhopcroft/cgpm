@@ -41,20 +41,20 @@ def get_version():
     with open('VERSION', 'rb') as f:
         version = f.read().strip()
 
-    full_version = str(version)
+    full_version = version
 
     # Strip the local part if there is one, to appease pkg_resources,
     # which handles only PEP 386, not PEP 440.
-    if '+' in full_version:
-        pkg_version = full_version[:full_version.find('+')]
+    if b'+' in full_version:
+        pkg_version = full_version[:full_version.find(b'+')]
     else:
         pkg_version = full_version
 
     # Sanity-check the result.  XXX Consider checking the full PEP 386
     # and PEP 440 regular expressions here?
-    assert '-' not in full_version, '%r' % (full_version,)
-    assert '-' not in pkg_version, '%r' % (pkg_version,)
-    assert '+' not in pkg_version, '%r' % (pkg_version,)
+    assert b'-' not in full_version, '%r' % (full_version,)
+    assert b'-' not in pkg_version, '%r' % (pkg_version,)
+    assert b'+' not in pkg_version, '%r' % (pkg_version,)
 
     return pkg_version, full_version
 
