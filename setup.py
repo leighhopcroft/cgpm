@@ -42,7 +42,7 @@ def get_version():
         version = f.read().strip()
 
     # Append the Git commit id if this is a development version.
-    if version.endswith('+'):
+    if version.endswith(b'+'):
         import re
         import subprocess
         version = version[:-1]
