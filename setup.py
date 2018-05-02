@@ -41,25 +41,7 @@ def get_version():
     with open('VERSION', 'rb') as f:
         version = f.read().strip()
 
-    # Append the Git commit id if this is a development version.
-    if version.endswith(b'+'):
-        import re
-        import subprocess
-        version = version[:-1]
-        tag = b'v' + version
-        desc = subprocess.check_output([
-            'git', 'describe', '--dirty', '--long', '--match', tag,
-        ])
-        match = re.match(r'^v([^-]*)-([0-9]+)-(.*)$', desc)
-        assert match is not None
-        verpart, revpart, localpart = match.groups()
-        assert verpart == version
-        # Local part may be g0123abcd or g0123abcd-dirty.  Hyphens are
-        # not kosher here, so replace by dots.
-        localpart = localpart.replace('-', '.')
-        full_version = '%s.post%s+%s' % (verpart, revpart, localpart)
-    else:
-        full_version = version
+    full_version = str(version)
 
     # Strip the local part if there is one, to appease pkg_resources,
     # which handles only PEP 386, not PEP 440.
