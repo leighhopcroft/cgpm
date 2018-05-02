@@ -86,7 +86,7 @@ def write_version_py(path):
         version_old = None
     version_new = '__version__ = %r\n' % (full_version,)
     if version_old != version_new:
-        print 'writing %s' % (path,)
+        print('writing %s' % (path,))
         with open(path, 'wb') as f:
             f.write(version_new)
 
