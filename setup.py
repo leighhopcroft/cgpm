@@ -152,6 +152,5 @@ setup(
     ],
     cmdclass={
         'build_py': local_build_py,
-        'sdist': local_sdist,
     },
 )
