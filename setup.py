@@ -77,8 +77,8 @@ def readme_contents():
     readme_path = os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
         'README.md')
-    with open(readme_path) as readme_file:
-        return unicode(readme_file.read(), 'UTF-8')
+    with open(readme_path, encoding='UTF-8') as readme_file:
+        return readme_file.read()
 
 class local_build_py(build_py):
     def run(self):
