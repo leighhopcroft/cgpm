@@ -34,7 +34,7 @@ def le32dec(s):
 
 # Per-process action: grab an input from the input queue, compute,
 # toss the output in the output queue.
-def process_input(childno, inq_rd, outq_wr, retq_wr):
+def process_input(childno, inq_rd, outq_wr, retq_wr, l):
     while True:
         i = inq_rd.recv()
         if i is None:
@@ -68,7 +68,7 @@ def parallel_map(f, l, parallelism=None):
     inq = [Pipe(duplex=False) for _ in xrange(ncpu)]
     outq = [Pipe(duplex=False) for _ in xrange(ncpu)]
     process = [
-        Process(target=process_input, args=(j, inq[j][0], outq[j][1], retq_wr))
+        Process(target=process_input, args=(j, inq[j][0], outq[j][1], retq_wr, l))
         for j in xrange(ncpu)
     ]
 
