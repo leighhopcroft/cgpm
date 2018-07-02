@@ -107,21 +107,21 @@ def parallel_map(f, l, parallelism=None):
             for p in process:
                 p.join()
 
-    except Exception as e:           # paranoia
-        # Terminate all subprocesses immediately and reraise.
-        for p in process:
-            if p.is_alive():
-                p.terminate()
-        raise
+        except Exception as e:           # paranoia
+            # Terminate all subprocesses immediately and reraise.
+            for p in process:
+                if p.is_alive():
+                    p.terminate()
+            raise
 
-    finally:
-        os.close(retq_rd)
-        os.close(retq_wr)
-        for inq_rd, inq_wr in inq:
-            inq_rd.close()
-            inq_wr.close()
-        for outq_rd, outq_wr in outq:
-            outq_rd.close()
-            outq_wr.close()
+        finally:
+            os.close(retq_rd)
+            os.close(retq_wr)
+            for inq_rd, inq_wr in inq:
+                inq_rd.close()
+                inq_wr.close()
+            for outq_rd, outq_wr in outq:
+                outq_rd.close()
+                outq_wr.close()
 
-    return fl
+        return fl
