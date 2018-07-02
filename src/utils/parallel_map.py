@@ -32,36 +32,36 @@ def le32dec(s):
     return struct.unpack('<I', s)[0]
 
 
+# Per-process action: grab an input from the input queue, compute,
+# toss the output in the output queue.
+def process_input(childno, inq_rd, outq_wr, retq_wr):
+    while True:
+        i = inq_rd.recv()
+        if i is None:
+            break
+        x = l[i]
+        try:
+            ok, fx = True, f(x)
+        except Exception as e:
+            ok, fx = False, traceback.format_exc()
+        os.write(retq_wr, le32enc(childno))
+        try:
+            outq_wr.send((i, ok, fx))
+        except pickle.PicklingError:
+            outq_wr.send((i, False, traceback.format_exc()))
+
+def process_output(fl, ctr, output):
+    (i, ok, fx) = output
+    if not ok:
+        raise RuntimeError('Subprocess failed: %s' % (fx,))
+    fl[i] = fx
+    ctr[0] -= 1
+
 # Not using multiprocessing.pool because it is not clear how to get it
 # to share data from the parent to the child process.
 def parallel_map(f, l, parallelism=None):
 
     ncpu = cpu_count() if parallelism is None else parallelism
-
-    # Per-process action: grab an input from the input queue, compute,
-    # toss the output in the output queue.
-    def process_input(childno, inq_rd, outq_wr, retq_wr):
-        while True:
-            i = inq_rd.recv()
-            if i is None:
-                break
-            x = l[i]
-            try:
-                ok, fx = True, f(x)
-            except Exception as e:
-                ok, fx = False, traceback.format_exc()
-            os.write(retq_wr, le32enc(childno))
-            try:
-                outq_wr.send((i, ok, fx))
-            except pickle.PicklingError:
-                outq_wr.send((i, False, traceback.format_exc()))
-
-    def process_output(fl, ctr, output):
-        (i, ok, fx) = output
-        if not ok:
-            raise RuntimeError('Subprocess failed: %s' % (fx,))
-        fl[i] = fx
-        ctr[0] -= 1
 
     # Create the queues and worker processes.
     retq_rd, retq_wr = os.pipe()
