@@ -60,51 +60,52 @@ def process_output(fl, ctr, output):
 # Not using multiprocessing.pool because it is not clear how to get it
 # to share data from the parent to the child process.
 def parallel_map(f, l, parallelism=None):
+    if __name__ == '__main__':
 
-    ncpu = cpu_count() if parallelism is None else parallelism
+        ncpu = cpu_count() if parallelism is None else parallelism
 
-    # Create the queues and worker processes.
-    retq_rd, retq_wr = os.pipe()
-    inq = [Pipe(duplex=False) for _ in xrange(ncpu)]
-    outq = [Pipe(duplex=False) for _ in xrange(ncpu)]
-    process = [
-        Process(target=process_input, args=(j, inq[j][0], outq[j][1], retq_wr))
-        for j in xrange(ncpu)
-    ]
+        # Create the queues and worker processes.
+        retq_rd, retq_wr = os.pipe()
+        inq = [Pipe(duplex=False) for _ in xrange(ncpu)]
+        outq = [Pipe(duplex=False) for _ in xrange(ncpu)]
+        process = [
+            Process(target=process_input, args=(j, inq[j][0], outq[j][1], retq_wr))
+            for j in xrange(ncpu)
+        ]
 
-    # Prepare to bail by terminating all the worker processes.
-    try:
+        # Prepare to bail by terminating all the worker processes.
+        try:
 
-        # Start the worker processes.
-        for p in process:
-            p.start()
+            # Start the worker processes.
+            for p in process:
+                p.start()
 
-        # Queue up the tasks one by one.  If the input queue is full,
-        # process an output item to free up a worker process and try
-        # again.
-        n = len(l)
-        fl = [None] * n
-        ctr = [n]
-        iterator = iter(xrange(n))
-        for j, i in zip(xrange(ncpu), iterator):
-            inq[j][1].send(i)
-        for i in iterator:
-            j = le32dec(os.read(retq_rd, 4))
-            process_output(fl, ctr, outq[j][0].recv())
-            inq[j][1].send(i)
+            # Queue up the tasks one by one.  If the input queue is full,
+            # process an output item to free up a worker process and try
+            # again.
+            n = len(l)
+            fl = [None] * n
+            ctr = [n]
+            iterator = iter(xrange(n))
+            for j, i in zip(xrange(ncpu), iterator):
+                inq[j][1].send(i)
+            for i in iterator:
+                j = le32dec(os.read(retq_rd, 4))
+                process_output(fl, ctr, outq[j][0].recv())
+                inq[j][1].send(i)
 
-        # Process all the remaining output items.
-        while 0 < ctr[0]:
-            j = le32dec(os.read(retq_rd, 4))
-            process_output(fl, ctr, outq[j][0].recv())
+            # Process all the remaining output items.
+            while 0 < ctr[0]:
+                j = le32dec(os.read(retq_rd, 4))
+                process_output(fl, ctr, outq[j][0].recv())
 
-        # Cancel all the worker processes.
-        for _inq_rd, inq_wr in inq:
-            inq_wr.send(None)
+            # Cancel all the worker processes.
+            for _inq_rd, inq_wr in inq:
+                inq_wr.send(None)
 
-        # Wait for all the worker processes to complete.
-        for p in process:
-            p.join()
+            # Wait for all the worker processes to complete.
+            for p in process:
+                p.join()
 
     except Exception as e:           # paranoia
         # Terminate all subprocesses immediately and reraise.
