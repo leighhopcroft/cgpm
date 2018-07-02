@@ -356,7 +356,7 @@ class Engine(object):
 
     def _get_seeds(self, N=None):
         num_draws = N if N is not None else self.num_states()
-        return self.rng.randint(low=1, high=2**32-1, size=num_draws)
+        return self.rng.randint(low=1, high=2**32-1, size=num_draws, dtype=np.int64)
 
     def _likelihood_weighted_integrate(self, logpdfs, rowid, constraints=None,
             inputs=None, statenos=None, multiprocess=1):
